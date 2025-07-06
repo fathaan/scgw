@@ -1,0 +1,4 @@
+.wwebjs_auth/*
+img/*
+node_modules/*
+*desktop.ini
