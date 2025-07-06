@@ -1,0 +1,34 @@
+{
+    "name": "scgw-bot",
+    "version": "1.0.0",
+    "description": "Saint Create Group WhatsApp (SCGW) Bot - Automated WhatsApp Group Creator",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js",
+        "dev": "nodemon index.js"
+    },
+    "keywords": [
+        "whatsapp",
+        "bot",
+        "group",
+        "automation",
+        "nodejs"
+    ],
+    "author": "@alfathaannn",
+    "license": "MIT",
+    "dependencies": {
+        "chalk": "^4.1.2",
+        "figlet": "^1.6.0",
+        "gradient-string": "^2.0.2",
+        "ora": "^5.4.1",
+        "puppeteer": "^19.11.1",
+        "qrcode-terminal": "^0.12.0",
+        "whatsapp-web.js": "^1.31.0"
+    },
+    "devDependencies": {
+        "nodemon": "^3.0.1"
+    },
+    "engines": {
+        "node": ">=14.0.0"
+    }
+}
