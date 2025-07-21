@@ -16,6 +16,7 @@ class SCGWBot {
             output: process.stdout
         });
         this.isReady = false;
+        this.connectedNumber = null;
     }
 
     // Banner ASCII Art
@@ -27,21 +28,32 @@ class SCGWBot {
             verticalLayout: 'default'
         });
         
-        console.log(chalk.red.bold(banner));
+        console.log(chalk.cyan.bold(banner));
         console.log(chalk.cyan.bold('by @alfathaannn\n'));
         console.log(chalk.yellow('═'.repeat(80)));
-        console.log(chalk.green.bold('🚀 SAINT CREATE GROUP WHATSAPP (SCGW) BOT 🚀'));
+        console.log(gradient.instagram('🚀 SAINT CREATE GROUP WHATSAPP (SCGW) BOT 🚀'));
         console.log(chalk.yellow('═'.repeat(80)));
+        
+        // Show status information here
+        console.log(chalk.blue.bold('\n📊 INFORMASI BOT:'));
+        console.log(chalk.yellow('─'.repeat(40)));
+        console.log(chalk.white(`🔗 Status WhatsApp: ${this.isReady ? chalk.green.bold('TERHUBUNG') : chalk.red.bold('TIDAK TERHUBUNG')}`));
+        if (this.isReady && this.connectedNumber) {
+            console.log(chalk.white(`📱 Nomor Terhubung: ${chalk.cyan.bold(this.connectedNumber)}`));
+        }
+        console.log(chalk.white(`📅 Versi: ${chalk.magenta.bold('SCGW v1.0')}`));
+        console.log(chalk.white(`👤 Developer: ${chalk.cyan.bold('@alfathaannn')}`));
+        console.log(chalk.yellow('─'.repeat(40)));
         console.log();
     }
 
     // Menu Navigation
     showMenu() {
         console.log(chalk.magenta.bold('\n📋 MENU NAVIGASI:'));
-        console.log(chalk.cyan('1. 🔗 Koneksi WhatsApp'));
+        console.log(chalk.cyan('1. 🔗 Hubungkan WhatsApp'));
         console.log(chalk.cyan('2. 📱 Buat Grup Otomatis'));
-        console.log(chalk.cyan('3. 📊 Status Bot'));
-        console.log(chalk.cyan('4. 🚪 Keluar'));
+        console.log(chalk.cyan('3. 🔐 Logout WhatsApp'));
+        console.log(chalk.cyan('4. 🚪 Matikan BOT'));
         console.log(chalk.yellow('-'.repeat(40)));
     }
 
@@ -97,10 +109,27 @@ class SCGWBot {
                 console.log(chalk.yellow('\n⚠️ Harap scan dalam waktu 30 detik!'));
             });
 
-            this.client.on('ready', () => {
+            this.client.on('ready', async () => {
                 spinner.stop();
                 console.log(chalk.green.bold('\n✅ WhatsApp terhubung dengan sukses!'));
                 this.isReady = true;
+                
+                // Dapatkan nomor yang terhubung dengan cara yang lebih reliable
+                try {
+                    const info = this.client.info;
+                    if (info && info.wid && info.wid.user) {
+                        this.connectedNumber = info.wid.user;
+                        console.log(chalk.cyan.bold(`📱 Nomor terhubung: ${this.connectedNumber}`));
+                    } else {
+                        // Fallback method
+                        const me = await this.client.getMe();
+                        this.connectedNumber = me.number || me.user || 'Tidak diketahui';
+                        console.log(chalk.cyan.bold(`📱 Nomor terhubung: ${this.connectedNumber}`));
+                    }
+                } catch (error) {
+                    console.log(chalk.yellow('⚠️ Gagal mendapatkan nomor WhatsApp'));
+                    this.connectedNumber = 'Tidak diketahui';
+                }
             });
 
             this.client.on('auth_failure', (msg) => {
@@ -114,6 +143,7 @@ class SCGWBot {
                 console.log(chalk.red.bold('\n📡 WhatsApp terputus!'));
                 console.log(chalk.yellow(`Alasan: ${reason}`));
                 this.isReady = false;
+                this.connectedNumber = null;
             });
 
             await this.client.initialize();
@@ -168,7 +198,7 @@ class SCGWBot {
 
             for (let i = 1; i <= groupCount; i++) {
                 try {
-                    const groupTitle = `${groupName} / ${currentDate} - ${i.toString().padStart(2, '0')}`;
+                    const groupTitle = `${groupName} ${i.toString().padStart(2, '0')}`;
                     
                     // Buat grup dengan nomor yang diinvite
                     const participantIds = numbers.map(num => `${num}@c.us`);
@@ -207,7 +237,7 @@ class SCGWBot {
                 } catch (error) {
                     results.push({
                         success: false,
-                        name: `${groupName} / ${currentDate} - ${i.toString().padStart(2, '0')}`,
+                        name: `${groupName} - ${i.toString().padStart(2, '0')}`,
                         error: error.message
                     });
                 }
@@ -215,31 +245,152 @@ class SCGWBot {
 
             spinner.stop();
 
-            // Tampilkan hasil
-            console.log(chalk.green.bold('\n✅ HASIL PEMBUATAN GRUP:'));
-            console.log(chalk.yellow('═'.repeat(60)));
+           // Tampilkan hasil
+           console.log(chalk.green.bold('\n✅ HASIL PEMBUATAN GRUP:'));
+           console.log(chalk.yellow('═'.repeat(60)));
 
-            const successful = results.filter(r => r.success);
-            const failed = results.filter(r => !r.success);
+           const successful = results.filter(r => r.success);
+           const failed = results.filter(r => !r.success);
 
-            console.log(chalk.green.bold(`✅ Berhasil: ${successful.length} grup`));
-            successful.forEach((result, index) => {
-                console.log(chalk.green(`   ${index + 1}. ${result.name}`));
-            });
+           console.log(chalk.green.bold(`✅ Berhasil: ${successful.length} grup`));
+           successful.forEach((result, index) => {
+               console.log(chalk.green(`   ${index + 1}. ${result.name}`));
+           });
 
-            if (failed.length > 0) {
-                console.log(chalk.red.bold(`\n❌ Gagal: ${failed.length} grup`));
-                failed.forEach((result, index) => {
-                    console.log(chalk.red(`   ${index + 1}. ${result.name} - ${result.error}`));
-                });
-            }
+           if (failed.length > 0) {
+               console.log(chalk.red.bold(`\n❌ Gagal: ${failed.length} grup`));
+               failed.forEach((result, index) => {
+                   console.log(chalk.red(`   ${index + 1}. ${result.name} - ${result.error}`));
+               });
+           }
 
-            console.log(chalk.yellow('═'.repeat(60)));
-            console.log(chalk.blue.bold(`📊 Total: ${results.length} grup diproses`));
+           console.log(chalk.yellow('═'.repeat(60)));
+           console.log(chalk.blue.bold(`📊 Total: ${results.length} grup diproses`));
 
-        } catch (error) {
+           // Simpan history
+           await this.saveGroupHistory(results);
+
+       } catch (error) {
             console.log(chalk.red.bold('\n❌ Error saat membuat grup:'));
             console.log(chalk.red(error.message));
+        }
+    }
+
+    // Fungsi untuk menghapus folder .wwebjs_auth
+    async deleteAuthFolder() {
+        try {
+            const authPath = path.join(process.cwd(), '.wwebjs_auth');
+            if (fs.existsSync(authPath)) {
+                // Hapus folder secara rekursif
+                fs.rmSync(authPath, { recursive: true, force: true });
+                console.log(chalk.green.bold('✅ Folder .wwebjs_auth berhasil dihapus'));
+            } else {
+                console.log(chalk.yellow('⚠️ Folder .wwebjs_auth tidak ditemukan'));
+            }
+        } catch (error) {
+            console.log(chalk.red.bold('❌ Gagal menghapus folder .wwebjs_auth:'));
+            console.log(chalk.red(error.message));
+        }
+    }
+
+    // Logout Whatsapp dengan menghapus folder auth
+    async logoutWhatsApp() {
+        if (!this.isReady) {
+            console.log(chalk.red.bold('\n❌ WhatsApp belum terhubung!'));
+            return;
+        }
+    
+        try {
+            const confirm = await this.confirmAction('Yakin ingin logout dari WhatsApp?');
+            if (!confirm) {
+                console.log(chalk.yellow('❌ Logout dibatalkan.'));
+                return;
+            }
+    
+            const spinner = this.showLoadingAnimation('Melakukan logout...');
+            
+            // Proses logout yang lebih lengkap
+            if (this.client) {
+                try {
+                    // Logout dari WhatsApp Web
+                    await this.client.logout();
+                    console.log(chalk.green('✅ Logout dari WhatsApp berhasil'));
+                } catch (logoutError) {
+                    console.log(chalk.yellow(`⚠️ Warning logout: ${logoutError.message}`));
+                }
+                
+                try {
+                    // Destroy client
+                    await this.client.destroy();
+                    console.log(chalk.green('✅ Client destroyed'));
+                } catch (destroyError) {
+                    console.log(chalk.yellow(`⚠️ Warning destroy: ${destroyError.message}`));
+                }
+            }
+            
+            // Reset state
+            this.client = null;
+            this.isReady = false;
+            this.connectedNumber = null;
+            
+            spinner.stop();
+            
+            // Hapus folder auth
+            await this.deleteAuthFolder();
+            
+            console.log(chalk.green.bold('\n✅ Berhasil logout dari WhatsApp dan menghapus data autentikasi!'));
+            
+        } catch (error) {
+            console.log(chalk.red.bold('\n❌ Gagal logout:'));
+            console.log(chalk.red(error.message));
+            
+            // Tetap reset state meskipun ada error
+            this.client = null;
+            this.isReady = false;
+            this.connectedNumber = null;
+            
+            // Tetap coba hapus folder auth
+            await this.deleteAuthFolder();
+        }
+    }
+    // Fungsi untuk menyimpan history grup ke file
+    async saveGroupHistory(groups) {
+        try {
+            const historyDir = path.join(process.cwd(), 'history');
+            if (!fs.existsSync(historyDir)) {
+                fs.mkdirSync(historyDir);
+            }
+
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0];
+            const timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '-');
+            const filename = `group_history_${dateStr}_${timeStr}.txt`;
+            const filePath = path.join(historyDir, filename);
+
+            let content = '📋 SAINT CREATE GROUP WHATSAPP BOT - GROUP CREATION HISTORY\n';
+            content += '═'.repeat(60) + '\n';
+            content += `📅 Tanggal Pembuatan: ${now.toLocaleString()}\n`;
+            content += `👤 Developer: @alfathaannn\n`;
+            content += '═'.repeat(60) + '\n\n';
+            content += '📊 DAFTAR GRUP YANG DIBUAT:\n';
+            content += '─'.repeat(40) + '\n';
+
+            groups.forEach((group, index) => {
+                content += `🔹 ${index + 1}. ${group.name}\n`;
+                content += `   - Status: ${group.success ? '✅ Berhasil' : '❌ Gagal'}\n`;
+                if (group.success) {
+                    content += `   - Group ID: ${group.id}\n`;
+                } else {
+                    content += `   - Error: ${group.error}\n`;
+                }
+                content += '─'.repeat(40) + '\n';
+            });
+
+            fs.writeFileSync(filePath, content);
+            console.log(chalk.green.bold(`\n📝 History grup disimpan di: ${filePath}`));
+
+        } catch (error) {
+            console.log(chalk.yellow(`⚠️ Gagal menyimpan history: ${error.message}`));
         }
     }
 
@@ -262,9 +413,9 @@ class SCGWBot {
         while (true) {
             this.showBanner();
             this.showMenu();
-
+    
             const choice = await this.askQuestion('Pilih menu (1-4)');
-
+    
             switch (choice) {
                 case '1':
                     await this.initializeWhatsApp();
@@ -275,7 +426,7 @@ class SCGWBot {
                     await this.askQuestion('Tekan Enter untuk melanjutkan');
                     break;
                 case '3':
-                    this.showStatus();
+                    await this.logoutWhatsApp();
                     await this.askQuestion('Tekan Enter untuk melanjutkan');
                     break;
                 case '4':
